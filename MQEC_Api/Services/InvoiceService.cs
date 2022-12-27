@@ -36,6 +36,7 @@ namespace MQEC_Api.Services
         {
             DateTime date = DateTime.Now;
             string strInvoiceNumber = "";
+            string strInvoiceTrack = "";
             string strInvoiceNumberMax = "";
             string strTaxID = "";
             InvoiceResponse Result = new InvoiceResponse();
@@ -144,26 +145,27 @@ namespace MQEC_Api.Services
                 else
                 {
                     string strINVNo = "";
+                
                     strInvoiceNumberMax = InvoiceNumberList.Max(x => x.InvoiceNumberLast);
+                    var InvNumD = InvoiceNumberList.OrderBy(x => x.InvNo + x.InvoiceMonthTo).FirstOrDefault();
                     if (strInvoiceNumberMax == "")
                     {
-                        var InvNumD = InvoiceNumberList.OrderBy(x => x.InvNo + x.InvoiceMonthTo).FirstOrDefault();
-                        strInvoiceNumber = InvNumD.InvoiceTrack+ InvNumD.InvoiceNumberFrom;
-                        InvNumD.InvoiceNumberLast = InvNumD.InvoiceNumberFrom;
-                        strTaxID = InvNumD.BranchTaxId;
-                        strINVNo = InvNumD.InvNo;
+                        strInvoiceTrack = InvNumD.InvoiceTrack;
+                        strInvoiceNumber =  InvNumD.InvoiceNumberFrom;
                     }
                     else
                     {
-                        var InvNumD = ( from item in _context.InvoiceNumberDetails
-                                   where item.InvoiceNumberLast == strInvoiceNumberMax
-                                  select item).FirstOrDefault();
-                        strInvoiceNumber = InvNumD.InvoiceTrack + (int.Parse(InvNumD.InvoiceNumberLast) + 1).ToString().PadLeft(8,'0') ;
-                        strTaxID = InvNumD.BranchTaxId;
-                        InvNumD.InvoiceNumberLast = (int.Parse(InvNumD.InvoiceNumberLast) + 1).ToString().PadLeft(8, '0');
-                        InvNumD.AvaQty = InvNumD.AvaQty - 1;
-                        strINVNo = InvNumD.InvNo; 
+                         InvNumD = ( from item in _context.InvoiceNumberDetails
+                                    where item.InvoiceNumberLast == strInvoiceNumberMax
+                                   select item).FirstOrDefault();
+
+                        strInvoiceTrack = InvNumD.InvoiceTrack;
+                        strInvoiceNumber =  (int.Parse(InvNumD.InvoiceNumberLast) + 1).ToString().PadLeft(8,'0') ;
                     }
+                    strTaxID = InvNumD.BranchTaxId;
+                    InvNumD.AvaQty = InvNumD.AvaQty - 1;
+                    strINVNo = InvNumD.InvNo;
+                    InvNumD.InvoiceNumberLast = strInvoiceNumber;
                     _context.SaveChanges();
                     var InvNumH = (from InvNum in _context.InvoiceNumber
                                    where InvNum.InvNo == strINVNo
@@ -180,7 +182,7 @@ namespace MQEC_Api.Services
                     InvH.InvoiceType = Invoice.Main.InvoiceType;
                     InvH.InvoiceCategory = Invoice.InvoiceCategory;
                     InvH.InvoiceKind = "S";
-                    InvH.InvoiceNumber = strInvoiceNumber;
+                    InvH.InvoiceNumber = strInvoiceTrack + strInvoiceNumber;
                     InvH.InvoiceDate = date;
                     InvH.SellerId = Invoice.Main.Seller.Identifier;
                     InvH.SellerName = Invoice.Main.Seller.Name;
@@ -269,7 +271,7 @@ namespace MQEC_Api.Services
                 }
                 _context.SaveChanges();
                 transaction.Commit();
-                Result.InvoiceNumber = strInvoiceNumber;
+                Result.InvoiceNumber = strInvoiceTrack + strInvoiceNumber;
                 Result.InvoiceDate = date.ToString("yyyy/MM/dd");
                 Result.InvoiceTime = date.ToString("HH:mm:ss");
                 Result.TotalAmount = Invoice.Amount.TotalAmount;
