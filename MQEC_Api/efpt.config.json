@@ -1,0 +1,85 @@
+﻿{
+   "CodeGenerationMode": 1,
+   "ContextClassName": "MQECErpContext",
+   "ContextNamespace": null,
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": null,
+   "OutputContextPath": "Models",
+   "OutputPath": "Models",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "MQEC_Api",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 0,
+   "SelectedToBeGenerated": 0,
+   "Tables": [
+      {
+         "Name": "[dbo].[comInvoiceType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[comTurnkeySetting]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[comVatType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DiscountsUploadStatus]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[fm]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Invoice]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[InvoiceDetails]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[InvoiceNumber]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[InvoiceNumberDetails]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[InvoiceUploadStatus]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Programs]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[User_Programs]",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": "YM-SERVER.MQECErp",
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDbContextSplitting": false,
+   "UseFluentApiOnly": false,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": false,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoConstructor": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UseSchemaFolders": false,
+   "UseSpatial": false,
+   "UseT4": false
+}
