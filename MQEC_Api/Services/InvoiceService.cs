@@ -53,20 +53,21 @@ namespace MQEC_Api.Services
             //    Result.Result.ResultMessage = "建檔人員(createUser)不可空白";
             //    return Result;
             //}
-            
-                if (Invoice.Main.Seller.Identifier.Length != 8)
-                {
-                    Result.Result.ResultCode = "9999";
-                    Result.Result.ResultMessage = "賣方統編(Main.Seller.Identifier)須為8碼數字";
-                    return Result;
-                }
-            
-                if (Invoice.InvoiceCategory == "B2B" && Invoice.Main.Buyer.Identifier.Length !=8)
-                {
-                    Result.Result.ResultCode = "9999";
-                    Result.Result.ResultMessage = "B2B賣方統編(Main.Seller.Identifier)須為碼8數字";
-                    return Result;
-                }
+
+            //表頭檢核
+            if (Invoice.Main.Seller.Identifier.Length != 8)
+            {
+                Result.Result.ResultCode = "9999";
+                Result.Result.ResultMessage = "賣方統編(Main.Seller.Identifier)須為8碼數字";
+                return Result;
+            }
+
+            if (Invoice.InvoiceCategory == "B2B" && Invoice.Main.Buyer.Identifier.Length != 8)
+            {
+                Result.Result.ResultCode = "9999";
+                Result.Result.ResultMessage = "B2B賣方統編(Main.Seller.Identifier)須為碼8數字";
+                return Result;
+            }
             var ChkInvoiceType = (from item in _context.ComInvoiceType
                                   where item.InvoiceType == Invoice.Main.InvoiceType
                                   select item).FirstOrDefault();
@@ -120,22 +121,22 @@ namespace MQEC_Api.Services
                 Result.Result.ResultMessage = "總計金額(Main.TotalAmount)不可小於0";
                 return Result;
             }
-            
+
             using (var transaction = _context.Database.BeginTransaction(IsolationLevel.RepeatableRead))
             {
                 var InvoiceNumberForm = _context.InvoiceNumberDetails.FromSqlRaw(@$"select * from InvoiceNumberDetails with (updlock)");
 
-                var InvoiceNumberList = ( from Inv in _context.InvoiceNumberDetails
+                var InvoiceNumberList = (from Inv in _context.InvoiceNumberDetails
                                          where Inv.CompanyNo == "MQEC"
                                             && Inv.InvoiceFunction == "Inv_Sys"
                                             && Inv.InvoiceType == Invoice.Main.InvoiceType
                                             && Inv.InvoiceYear == date.Year.ToString().PadLeft(4, '0')
                                             && string.Compare(date.Month.ToString().PadLeft(2, '0'), Inv.InvoiceMonthFrom) >= 0
                                             && string.Compare(date.Month.ToString().PadLeft(2, '0'), Inv.InvoiceMonthTo) <= 0
-                                            && string.Compare(Inv.InvoiceNumberLast, Inv.InvoiceNumberTo)<0
-                                            && Inv.BranchTaxId == Invoice.Main.Seller.Identifier 
+                                            && string.Compare(Inv.InvoiceNumberLast, Inv.InvoiceNumberTo) < 0
+                                            && Inv.BranchTaxId == Invoice.Main.Seller.Identifier
                                             && Inv.Discontinued == false
-                                        select Inv).ToList();
+                                         select Inv).ToList();
                 if (InvoiceNumberList.Count == 0)
                 {
                     Result.Result.ResultCode = "9999";
@@ -144,25 +145,26 @@ namespace MQEC_Api.Services
                 }
                 else
                 {
+                    //取發票號碼
                     string strINVNo = "";
-                
                     strInvoiceNumberMax = InvoiceNumberList.Max(x => x.InvoiceNumberLast);
                     var InvNumD = InvoiceNumberList.OrderBy(x => x.InvNo + x.InvoiceMonthTo).FirstOrDefault();
                     if (strInvoiceNumberMax == "")
                     {
                         strInvoiceTrack = InvNumD.InvoiceTrack;
-                        strInvoiceNumber =  InvNumD.InvoiceNumberFrom;
+                        strInvoiceNumber = InvNumD.InvoiceNumberFrom;
                     }
                     else
                     {
-                         InvNumD = ( from item in _context.InvoiceNumberDetails
-                                    where item.InvoiceNumberLast == strInvoiceNumberMax
+                        InvNumD = (from item in _context.InvoiceNumberDetails
+                                   where item.InvoiceNumberLast == strInvoiceNumberMax
                                    select item).FirstOrDefault();
 
                         strInvoiceTrack = InvNumD.InvoiceTrack;
-                        strInvoiceNumber =  (int.Parse(InvNumD.InvoiceNumberLast) + 1).ToString().PadLeft(8,'0') ;
+                        strInvoiceNumber = (int.Parse(InvNumD.InvoiceNumberLast) + 1).ToString().PadLeft(8, '0');
                     }
                     strTaxID = InvNumD.BranchTaxId;
+                    //更新可用發票數量
                     InvNumD.AvaQty = InvNumD.AvaQty - 1;
                     strINVNo = InvNumD.InvNo;
                     InvNumD.InvoiceNumberLast = strInvoiceNumber;
@@ -175,7 +177,8 @@ namespace MQEC_Api.Services
                                       select InvNumDe).Sum(x => x.AvaQty);
                     _context.SaveChanges();
                     Random rnd = new Random();
-                    int num = rnd.Next(10000);
+                    int num = rnd.Next(10000);//4碼隨機碼
+                    //寫入發票
                     Invoice InvH = new Invoice();
                     InvH.CompanyNo = "MQEC";
                     InvH.TaxId = strTaxID;
@@ -201,12 +204,12 @@ namespace MQEC_Api.Services
                     InvH.BuyerFacsimileNumber = (Invoice.Main.Buyer.FacsimileNumber == null ? "" : Invoice.Main.Seller.Address);
                     InvH.BuyerEmailAddress = (Invoice.Main.Buyer.EmailAddress == null ? "" : Invoice.Main.Buyer.EmailAddress);
                     InvH.BuyerCustomerNumber = (Invoice.Main.Buyer.CustomerNumber == null ? "" : Invoice.Main.Buyer.CustomerNumber);
-                    InvH.BuyerRoleRemark= (Invoice.Main.Buyer.RoleRemark == null ? "" : Invoice.Main.Buyer.RoleRemark);
+                    InvH.BuyerRoleRemark = (Invoice.Main.Buyer.RoleRemark == null ? "" : Invoice.Main.Buyer.RoleRemark);
                     InvH.CheckNumber = "";
                     InvH.BuyerRemark = "";
                     InvH.MainRemark = (Invoice.Main.MainRemark == null ? "" : Invoice.Main.MainRemark);
                     InvH.CustomsClearanceMark = (Invoice.Main.CustomsClearanceMark == null ? "" : Invoice.Main.CustomsClearanceMark);
-                    InvH.Category ="";
+                    InvH.Category = "";
                     InvH.RelateNumber = (Invoice.Main.RelateNumber == null ? "" : Invoice.Main.RelateNumber);
                     InvH.GroupMark = (Invoice.Main.GroupMark == null ? "" : Invoice.Main.GroupMark);
                     InvH.DonateMark = (Invoice.Main.DonateMark == "0" ? false : true);
@@ -214,7 +217,7 @@ namespace MQEC_Api.Services
                     InvH.CarrierId1 = (Invoice.Main.CarrierId1 == null ? "" : Invoice.Main.CarrierId1);
                     InvH.CarrierId2 = (Invoice.Main.CarrierId2 == null ? "" : Invoice.Main.CarrierId2);
                     InvH.Npoban = (Invoice.Main.NPOBAN == null ? "" : Invoice.Main.NPOBAN);
-                    InvH.PrintMark = ((Invoice.Main.NPOBAN == null ? "N" : Invoice.Main.NPOBAN) =="Y" ? true :false);
+                    InvH.PrintMark = ((Invoice.Main.NPOBAN == null ? "N" : Invoice.Main.NPOBAN) == "Y" ? true : false);
                     InvH.RandomNumber = num.ToString();
                     //InvH.Cancel_Date
                     InvH.CancelFlag = false;
@@ -222,10 +225,10 @@ namespace MQEC_Api.Services
                     InvH.CancelUser = "";
                     //InvH.Delete_Date
                     InvH.DeleteFlag = false;
-                    InvH.DeleteReason ="";
+                    InvH.DeleteReason = "";
                     InvH.DeleteUser = "";
                     InvH.SalesAmount = (Invoice.Amount.SalesAmount == null ? 0 : Invoice.Amount.SalesAmount);
-                    InvH.FreeTaxSalesAmount = (Invoice.Amount.FreeTaxSalesAmount == null ? 0 : Invoice.Amount.FreeTaxSalesAmount); 
+                    InvH.FreeTaxSalesAmount = (Invoice.Amount.FreeTaxSalesAmount == null ? 0 : Invoice.Amount.FreeTaxSalesAmount);
                     InvH.ZeroTaxSalesAmount = (Invoice.Amount.ZeroTaxSalesAmount == null ? 0 : Invoice.Amount.ZeroTaxSalesAmount);
                     InvH.TaxType = (Invoice.Amount.TaxType == null ? "" : Invoice.Amount.TaxType);
                     InvH.TaxRate = (Invoice.Amount.TaxRate == null ? 0 : Invoice.Amount.TaxRate);
@@ -241,7 +244,7 @@ namespace MQEC_Api.Services
                     InvH.UpdateUser = "";
                     _context.Invoice.Add(InvH);
                     int intSerNo = 1;
-                    foreach(var Detail in Invoice.Details)
+                    foreach (var Detail in Invoice.Details)
                     {
                         if (Detail.Quantity == null || Detail.Quantity <= 0)
                         {
@@ -250,7 +253,7 @@ namespace MQEC_Api.Services
                             return Result;
                         }
                         InvoiceDetails InvD = new InvoiceDetails();
-                        InvD.InvoiceNumber = strInvoiceNumber;
+                        InvD.InvoiceNumber =strInvoiceTrack + strInvoiceNumber;
                         InvD.Serno = intSerNo;
                         InvD.Prodid = "";
                         InvD.Description = Detail.Description;
@@ -291,7 +294,7 @@ namespace MQEC_Api.Services
             if (InvoiceInfo == null)
             {
                 Result.ResultCode = "9999";
-                Result.ResultMessage = "查無發票紀錄";
+                Result.ResultMessage = "查無發票紀錄，無法作廢";
             }
             else
             {
