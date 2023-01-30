@@ -41,32 +41,61 @@ namespace MQEC_Api.Services
             string strTaxID = "";
             InvoiceResponse Result = new InvoiceResponse();
             Result.Result = new ApiResultResponse();
-            //if (Invoice.InvoiceCategory == null || string.IsNullOrWhiteSpace(Invoice.InvoiceCategory))
-            //{
-            //    Result.Result.ResultCode = "9999";
-            //    Result.Result.ResultMessage = "發票分類(invoiceCategory)不可空白";
-            //    return Result;
-            //}
-            //if (Invoice.CreateUser == null || string.IsNullOrWhiteSpace(Invoice.CreateUser))
-            //{
-            //    Result.Result.ResultCode = "9999";
-            //    Result.Result.ResultMessage = "建檔人員(createUser)不可空白";
-            //    return Result;
-            //}
-
-            //表頭檢核
-            if (Invoice.Main.Seller.Identifier.Length != 8)
+            if (Invoice.InvoiceCategory == null || string.IsNullOrWhiteSpace(Invoice.InvoiceCategory))
             {
                 Result.Result.ResultCode = "9999";
-                Result.Result.ResultMessage = "賣方統編(Main.Seller.Identifier)須為8碼數字";
+                Result.Result.ResultMessage = "發票分類(invoiceCategory)不可空白";
                 return Result;
             }
-
-            if (Invoice.InvoiceCategory == "B2B" && Invoice.Main.Buyer.Identifier.Length != 8)
+            if (Invoice.CreateUser == null || string.IsNullOrWhiteSpace(Invoice.CreateUser))
             {
                 Result.Result.ResultCode = "9999";
-                Result.Result.ResultMessage = "B2B賣方統編(Main.Seller.Identifier)須為碼8數字";
+                Result.Result.ResultMessage = "建檔人員(createUser)不可空白";
                 return Result;
+            }
+            //設定賣方
+            var Seller = (from Company in _context.CompanyInfo
+                          select Company).FirstOrDefault();
+            if (Seller == null || Seller.CompanyNo == null || Seller.CompanyNo == "")
+            {
+                Result.Result.ResultCode = "9999";
+                Result.Result.ResultMessage = "賣方公司基本資料未設定";
+                return Result;
+            }
+            else
+            {
+                Invoice.Main.Seller.Identifier = Seller.TaxId;
+                Invoice.Main.Seller.Name = Seller.CompanyFullName;
+                Invoice.Main.Seller.Address = Seller.CompanyAddress;
+                Invoice.Main.Seller.PersonInCharge = Seller.Principal;
+                Invoice.Main.Seller.TelephoneNumber = Seller.Telephone;
+                Invoice.Main.Seller.FacsimileNumber = Seller.Fax;
+                Invoice.Main.Seller.EmailAddress = "";
+                Invoice.Main.Seller.CustomerNumber = Seller.CompanyNo;
+                Invoice.Main.Seller.RoleRemark = "";
+            }
+
+            //買方表頭檢核
+            if (Invoice.InvoiceCategory == "B2B" &&  Invoice.Main.Buyer.Identifier.Length != 8)
+            {
+                Result.Result.ResultCode = "9999";
+                Result.Result.ResultMessage = "B2B買方統編(Main.Buyer.Identifier)須為8碼數字";
+                return Result;
+            }
+            if (Invoice.InvoiceCategory == "B2B" )
+            {
+                try
+                { int.Parse(Invoice.Main.Buyer.Identifier); }
+                catch
+                {
+                    Result.Result.ResultCode = "9999";
+                    Result.Result.ResultMessage = "B2B買方統編(Main.Buyer.Identifier)須為8碼數字";
+                    return Result;
+                }
+            }
+            if (Invoice.InvoiceCategory == "B2C" )
+            {
+                Invoice.Main.Buyer.Identifier = "0000000000";
             }
             var ChkInvoiceType = (from item in _context.ComInvoiceType
                                   where item.InvoiceType == Invoice.Main.InvoiceType
@@ -108,7 +137,18 @@ namespace MQEC_Api.Services
             decimal decSaleAmount = (Invoice.Amount.SalesAmount == null ? 0 : Invoice.Amount.SalesAmount);
             decimal decFreeTaxSalesAmount = (Invoice.Amount.FreeTaxSalesAmount == null ? 0 : Invoice.Amount.FreeTaxSalesAmount);
             decimal decZeroTaxSalesAmount = (Invoice.Amount.ZeroTaxSalesAmount == null ? 0 : Invoice.Amount.ZeroTaxSalesAmount);
-
+            if (Invoice.Amount.Currency != null && Invoice.Amount.Currency != "")
+            {
+                var Currency = (from Cur in _context.ComCurrency
+                                where Cur.CurrencyId == Invoice.Amount.Currency
+                                select Cur).FirstOrDefault();
+                if (Currency == null || Currency.CurrencyId == null || Currency.CurrencyId == "")
+                {
+                    Result.Result.ResultCode = "9999";
+                    Result.Result.ResultMessage = $"幣別輸入錯誤(Invoice.Amount.Currency = {Invoice.Amount.Currency})";
+                    return Result;
+                }
+            }
             if (decSaleAmount + decFreeTaxSalesAmount + decZeroTaxSalesAmount <= 0)
             {
                 Result.Result.ResultCode = "9999";
@@ -237,7 +277,7 @@ namespace MQEC_Api.Services
                     InvH.DiscountAmount = (Invoice.Amount.DiscountAmount == null ? 0 : Invoice.Amount.DiscountAmount);
                     InvH.OriginalCurrencyAmount = (Invoice.Amount.OriginalCurrencyAmount == null ? 0 : Invoice.Amount.OriginalCurrencyAmount);
                     InvH.ExchangeRate = (Invoice.Amount.ExchangeRate == null ? 0 : Invoice.Amount.ExchangeRate);
-                    InvH.Currency = (Invoice.Amount.Currency == null ? "" : Invoice.Main.Seller.Address);
+                    InvH.Currency = (Invoice.Amount.Currency == null ? "" : Invoice.Amount.Currency);
                     InvH.CreateDate = date;
                     InvH.CreareUser = Invoice.CreateUser;
                     //InvH.UpdateDate = ;
@@ -250,6 +290,18 @@ namespace MQEC_Api.Services
                         {
                             Result.Result.ResultCode = "9999";
                             Result.Result.ResultMessage = $"數量必須大於0 (details.quantity, 序號{Detail.SequenceNumber})";
+                            return Result;
+                        }
+                        if (Detail.UnitPrice == null)
+                        {
+                            Result.Result.ResultCode = "9999";
+                            Result.Result.ResultMessage = $"必須需入單價 (details.UnitPrice, 序號{Detail.SequenceNumber})";
+                            return Result;
+                        }
+                        if (Detail.Quantity * Detail.UnitPrice != Detail.Amount)
+                        {
+                            Result.Result.ResultCode = "9999";
+                            Result.Result.ResultMessage = $"數量({Detail.Quantity}) * 單價 ({Detail.UnitPrice}) <> 金額 ({ Detail.Amount}), 序號{Detail.SequenceNumber}";
                             return Result;
                         }
                         InvoiceDetails InvD = new InvoiceDetails();
@@ -316,6 +368,7 @@ namespace MQEC_Api.Services
             _context.SaveChanges();
             return Result;
         }
+
 
     }
 }

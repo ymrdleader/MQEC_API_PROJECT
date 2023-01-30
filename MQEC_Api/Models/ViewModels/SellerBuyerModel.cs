@@ -8,10 +8,8 @@ namespace MQEC_Api.Models.ViewModels
 {
     public class SellerBuyerModel
     {
-        [Required(ErrorMessage = "買/賣方統編必須輸入")]
-        [RegularExpression(@"^[0-9]+$", ErrorMessage = "請輸入數字")]
         public string Identifier { get; set; }
-        [Required(ErrorMessage = "買/賣方名稱必須輸入")]
+
         public string Name { get; set; }
 
         public string Address { get; set; }

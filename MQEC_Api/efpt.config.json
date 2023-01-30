@@ -15,7 +15,35 @@
    "SelectedToBeGenerated": 0,
    "Tables": [
       {
+         "Name": "[dbo].[comCurrency]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[comDepartment]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[comFormType]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[comInvoiceType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[companyInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[companyInfoReceipt]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[comRank]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[comTaxType]",
          "ObjectType": 0
       },
       {

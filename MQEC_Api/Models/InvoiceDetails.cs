@@ -20,12 +20,10 @@ namespace MQEC_Api.Models
         [Required]
         [StringLength(256)]
         public string Description { get; set; }
-        [Required]
         public int Quantity { get; set; }
-        
+        [Required]
         [StringLength(6)]
         public string Unit { get; set; }
-        [Required]
         [Column(TypeName = "decimal(12, 2)")]
         public decimal UnitPrice { get; set; }
         [Column(TypeName = "decimal(12, 2)")]

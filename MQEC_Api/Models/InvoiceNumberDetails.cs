@@ -48,6 +48,10 @@ namespace MQEC_Api.Models
         [StringLength(2)]
         public string InvoiceTrack { get; set; }
         public int Booklet { get; set; }
+        [Column("Booklet_From")]
+        public int BookletFrom { get; set; }
+        [Column("Booklet_To")]
+        public int BookletTo { get; set; }
         [Required]
         [Column("InvoiceNumber_From")]
         [StringLength(8)]

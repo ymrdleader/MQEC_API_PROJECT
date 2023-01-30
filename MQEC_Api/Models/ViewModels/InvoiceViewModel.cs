@@ -9,9 +9,7 @@ namespace MQEC_Api.Models.ViewModels
 
     public class InvoiceViewModel
     {
-        [Required]
         public string InvoiceCategory { get; set; }
-        [Required]
         public string CreateUser { get; set; }
         [Required]
         public Main Main { get; set; }

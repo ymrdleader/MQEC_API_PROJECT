@@ -17,9 +17,16 @@ namespace MQEC_Api.Models
         {
         }
 
+        public virtual DbSet<ComCurrency> ComCurrency { get; set; }
+        public virtual DbSet<ComDepartment> ComDepartment { get; set; }
+        public virtual DbSet<ComFormType> ComFormType { get; set; }
         public virtual DbSet<ComInvoiceType> ComInvoiceType { get; set; }
+        public virtual DbSet<ComRank> ComRank { get; set; }
+        public virtual DbSet<ComTaxType> ComTaxType { get; set; }
         public virtual DbSet<ComTurnkeySetting> ComTurnkeySetting { get; set; }
         public virtual DbSet<ComVatType> ComVatType { get; set; }
+        public virtual DbSet<CompanyInfo> CompanyInfo { get; set; }
+        public virtual DbSet<CompanyInfoReceipt> CompanyInfoReceipt { get; set; }
         public virtual DbSet<DiscountsUploadStatus> DiscountsUploadStatus { get; set; }
         public virtual DbSet<Fm> Fm { get; set; }
         public virtual DbSet<Invoice> Invoice { get; set; }
@@ -32,14 +39,114 @@ namespace MQEC_Api.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ComCurrency>(entity =>
+            {
+                entity.Property(e => e.CurrencyId).IsUnicode(false);
+            });
+
+            modelBuilder.Entity<ComDepartment>(entity =>
+            {
+                entity.Property(e => e.DeptNo)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.DeptFather)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.DeptManager).HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.DeptName).HasDefaultValueSql("(space((0)))");
+            });
+
+            modelBuilder.Entity<ComFormType>(entity =>
+            {
+                entity.HasKey(e => new { e.FormNo, e.TypeNo })
+                    .HasName("PK_comOrderType");
+
+                entity.Property(e => e.FormNo).IsUnicode(false);
+
+                entity.Property(e => e.TypeNo).IsUnicode(false);
+            });
+
             modelBuilder.Entity<ComInvoiceType>(entity =>
             {
                 entity.Property(e => e.InvoiceType).IsUnicode(false);
             });
 
+            modelBuilder.Entity<ComRank>(entity =>
+            {
+                entity.Property(e => e.RankNo).ValueGeneratedNever();
+            });
+
+            modelBuilder.Entity<ComTaxType>(entity =>
+            {
+                entity.Property(e => e.TaxTypeNo).IsUnicode(false);
+
+                entity.Property(e => e.VatType).IsUnicode(false);
+            });
+
             modelBuilder.Entity<ComVatType>(entity =>
             {
                 entity.Property(e => e.VatTypeNo).IsUnicode(false);
+            });
+
+            modelBuilder.Entity<CompanyInfo>(entity =>
+            {
+                entity.Property(e => e.CompanyNo)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.CompanyAddress).HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.CompanyEngName).HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.CompanyFullName).HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.CompanyName).HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.Fax)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.Principal).HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.TaxId)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.Telephone)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("(space((0)))");
+            });
+
+            modelBuilder.Entity<CompanyInfoReceipt>(entity =>
+            {
+                entity.HasKey(e => new { e.CompanyNo, e.ReceiptName });
+
+                entity.Property(e => e.CompanyNo)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.ReceiptName).HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.CompanyName).HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.ContactFax)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.ContactPerson).HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.ContactTelephone)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.LocationNo).IsUnicode(false);
+
+                entity.Property(e => e.Memo).HasDefaultValueSql("(space((0)))");
+
+                entity.Property(e => e.ReceiptAddress).HasDefaultValueSql("(space((0)))");
             });
 
             modelBuilder.Entity<DiscountsUploadStatus>(entity =>
