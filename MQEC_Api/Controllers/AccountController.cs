@@ -12,15 +12,15 @@ namespace MQEC_Api.ApiController
 {
     [Route("MQEC/api/[controller]/[action]")]
     [ApiController]
-    public class APIAccountController : ControllerBase
+    public class AccountController : ControllerBase
     {
         private IAccountService _accountService;
-        public APIAccountController(IAccountService accountService)
+        public AccountController(IAccountService accountService)
         {
             _accountService = accountService;
         }
         /// <summary>
-        /// App 使用者登入(帳號密碼) (Phase1)
+        /// 使用者登入(帳號密碼)
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>

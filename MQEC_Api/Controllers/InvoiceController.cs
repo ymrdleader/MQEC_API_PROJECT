@@ -15,10 +15,10 @@ namespace MQEC_Api.ApiController
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("MQEC/api/[controller]/[action]")]
     [ApiController]
-    public class APIInvoiceController : ControllerBase
+    public class InvoiceController : ControllerBase
     {
         private IInvoiceService _invoiceService;
-        public APIInvoiceController(IInvoiceService InvoiceService)
+        public InvoiceController(IInvoiceService InvoiceService)
         {
             _invoiceService = InvoiceService;
         }
