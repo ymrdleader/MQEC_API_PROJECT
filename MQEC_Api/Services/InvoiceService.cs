@@ -47,6 +47,12 @@ namespace MQEC_Api.Services
                 Result.Result.ResultMessage = "發票分類(invoiceCategory)不可空白";
                 return Result;
             }
+            if (!new string[] { "B2B","B2C"}.Contains( Invoice.InvoiceCategory) )
+            {
+                Result.Result.ResultCode = "9999";
+                Result.Result.ResultMessage = "發票分類(invoiceCategory)應為 B2B or B2C";
+                return Result;
+            }
             if (Invoice.CreateUser == null || string.IsNullOrWhiteSpace(Invoice.CreateUser))
             {
                 Result.Result.ResultCode = "9999";
@@ -75,6 +81,26 @@ namespace MQEC_Api.Services
                 Invoice.Main.Seller.RoleRemark = "";
             }
 
+            if (Invoice.Main.CustomsClearanceMark != null && Invoice.Main.CustomsClearanceMark != "")
+            {
+                if (!new string[] { "1", "2", "" }.Contains(Invoice.Main.CustomsClearanceMark))
+                {
+                    Result.Result.ResultCode = "9999";
+                    Result.Result.ResultMessage = "通關方式(Invoice.Main.CustomsClearanceMark)應為 1 or 2";
+                    return Result;
+                }
+            }
+
+            if (Invoice.Main.GroupMark != null && Invoice.Main.GroupMark != "")
+            {
+                if (!new string[] { "*", "" }.Contains(Invoice.Main.CustomsClearanceMark))
+                {
+                    Result.Result.ResultCode = "9999";
+                    Result.Result.ResultMessage = "彙開註記(Invoice.Main.GroupMark)應為 * ";
+                    return Result;
+                }
+            }
+
             //買方表頭檢核
             if (Invoice.InvoiceCategory == "B2B" &&  Invoice.Main.Buyer.Identifier.Length != 8)
             {
@@ -93,10 +119,7 @@ namespace MQEC_Api.Services
                     return Result;
                 }
             }
-            if (Invoice.InvoiceCategory == "B2C" )
-            {
-                Invoice.Main.Buyer.Identifier = "0000000000";
-            }
+            
             var ChkInvoiceType = (from item in _context.ComInvoiceType
                                   where item.InvoiceType == Invoice.Main.InvoiceType
                                   select item).FirstOrDefault();
@@ -107,31 +130,81 @@ namespace MQEC_Api.Services
                 Result.Result.ResultMessage = "發票類別(Main.InvoiceType)不正確";
                 return Result;
             }
-            if (Invoice.Main.DonateMark != "0" && Invoice.Main.DonateMark != "1")
+
+            //B2C檢核
+            if (Invoice.InvoiceCategory == "B2C")
             {
-                Result.Result.ResultCode = "9999";
-                Result.Result.ResultMessage = "捐贈註記(Main.donateMark)須為 0 或 1";
-                return Result;
-            }
-            if (Invoice.Main.DonateMark == "1" && Invoice.Main.NPOBAN == "")
-            {
-                Result.Result.ResultCode = "9999";
-                Result.Result.ResultMessage = "捐贈發票必須輸入捐贈對象(Main.npoban)";
-                return Result;
-            }
-            if (Invoice.Main.CarrierType != "")
-            {
-                if (string.IsNullOrWhiteSpace(Invoice.Main.CarrierId1))
+                //B2C統編固定為0000000000
+                Invoice.Main.Buyer.Identifier = "0000000000";
+
+                if (!new string[] { "Y","N" }.Contains(Invoice.Main.PrintMark))
                 {
                     Result.Result.ResultCode = "9999";
-                    Result.Result.ResultMessage = "載具顯碼(Main.CarrierId1)不可空白";
+                    Result.Result.ResultMessage = "發票類別為B2C,需列印發票註記(Invoice.Main.printMark)應為 Y or N";
                     return Result;
                 }
-                if (string.IsNullOrWhiteSpace(Invoice.Main.CarrierId2))
+
+                if (Invoice.Main.PrintMark == "Y")
+                {
+                    if (Invoice.Main.CarrierType != null && Invoice.Main.CarrierType != "")
+                    {
+                        Result.Result.ResultCode = "9999";
+                        Result.Result.ResultMessage = "需列印發票載具類別號碼應為空白";
+                        return Result;
+                    }
+                    if (Invoice.Main.CarrierId1 != null && Invoice.Main.CarrierId1 != "")
+                    {
+                        Result.Result.ResultCode = "9999";
+                        Result.Result.ResultMessage = "需列印發票外顯碼(Main.carrierId1)應為空白";
+                        return Result;
+                    }
+                    if (Invoice.Main.DonateMark != null && Invoice.Main.DonateMark != "0")
+                    {
+                        Result.Result.ResultCode = "9999";
+                        Result.Result.ResultMessage = "需列印發票捐贈註記(Main.donateMark)應為0";
+                        return Result;
+                    }
+                }
+                else
+                {
+                    if (Invoice.Main.CarrierType == null || Invoice.Main.CarrierType == "")
+                    {
+                        Result.Result.ResultCode = "9999";
+                        Result.Result.ResultMessage = "載具類別號碼(Main.carrierType)不可空白";
+                        return Result;
+                    }
+                    else
+                    {
+                        if (string.IsNullOrWhiteSpace(Invoice.Main.CarrierId1))
+                        {
+                            Result.Result.ResultCode = "9999";
+                            Result.Result.ResultMessage = "載具顯碼(Main.carrierId1)不可空白";
+                            return Result;
+                        }
+                        if (string.IsNullOrWhiteSpace(Invoice.Main.CarrierId2))
+                        {
+                            Result.Result.ResultCode = "9999";
+                            Result.Result.ResultMessage = "載具隱碼(Main.carrierId2)不可空白";
+                            return Result;
+                        }
+                    }
+                }
+
+                if (Invoice.Main.DonateMark != "0" && Invoice.Main.DonateMark != "1")
                 {
                     Result.Result.ResultCode = "9999";
-                    Result.Result.ResultMessage = "載具隱碼(Main.CarrierId2)不可空白";
+                    Result.Result.ResultMessage = "捐贈註記(Main.donateMark)須為 0 或 1";
                     return Result;
+                }
+
+                if (Invoice.Main.DonateMark == "1")
+                {
+                    if (Invoice.Main.NPOBAN == "")
+                    {
+                        Result.Result.ResultCode = "9999";
+                        Result.Result.ResultMessage = "捐贈發票必須輸入捐贈對象(Main.npoban)";
+                        return Result;
+                    }
                 }
             }
             decimal decSaleAmount = (Invoice.Amount.SalesAmount == null ? 0 : Invoice.Amount.SalesAmount);
@@ -167,7 +240,7 @@ namespace MQEC_Api.Services
                 var InvoiceNumberForm = _context.InvoiceNumberDetails.FromSqlRaw(@$"select * from InvoiceNumberDetails with (updlock)");
 
                 var InvoiceNumberList = (from Inv in _context.InvoiceNumberDetails
-                                         where Inv.CompanyNo == "MQEC"
+                                         where Inv.CompanyNo == Seller.CompanyNo
                                             && Inv.InvoiceFunction == "Inv_Sys"
                                             && Inv.InvoiceType == Invoice.Main.InvoiceType
                                             && Inv.InvoiceYear == date.Year.ToString().PadLeft(4, '0')
@@ -220,7 +293,7 @@ namespace MQEC_Api.Services
                     int num = rnd.Next(10000);//4碼隨機碼
                     //寫入發票
                     Invoice InvH = new Invoice();
-                    InvH.CompanyNo = "MQEC";
+                    InvH.CompanyNo = Seller.CompanyNo;
                     InvH.TaxId = strTaxID;
                     InvH.InvoiceType = Invoice.Main.InvoiceType;
                     InvH.InvoiceCategory = Invoice.InvoiceCategory;
@@ -241,7 +314,7 @@ namespace MQEC_Api.Services
                     InvH.BuyerAddress = (Invoice.Main.Buyer.Address == null ? "" : Invoice.Main.Buyer.Address);
                     InvH.BuyerPersonInCharge = (Invoice.Main.Buyer.PersonInCharge == null ? "" : Invoice.Main.Buyer.PersonInCharge);
                     InvH.BuyerTelephoneNumber = (Invoice.Main.Buyer.TelephoneNumber == null ? "" : Invoice.Main.Buyer.TelephoneNumber);
-                    InvH.BuyerFacsimileNumber = (Invoice.Main.Buyer.FacsimileNumber == null ? "" : Invoice.Main.Seller.Address);
+                    InvH.BuyerFacsimileNumber = (Invoice.Main.Buyer.FacsimileNumber == null ? "" : Invoice.Main.Buyer.FacsimileNumber);
                     InvH.BuyerEmailAddress = (Invoice.Main.Buyer.EmailAddress == null ? "" : Invoice.Main.Buyer.EmailAddress);
                     InvH.BuyerCustomerNumber = (Invoice.Main.Buyer.CustomerNumber == null ? "" : Invoice.Main.Buyer.CustomerNumber);
                     InvH.BuyerRoleRemark = (Invoice.Main.Buyer.RoleRemark == null ? "" : Invoice.Main.Buyer.RoleRemark);
@@ -257,7 +330,7 @@ namespace MQEC_Api.Services
                     InvH.CarrierId1 = (Invoice.Main.CarrierId1 == null ? "" : Invoice.Main.CarrierId1);
                     InvH.CarrierId2 = (Invoice.Main.CarrierId2 == null ? "" : Invoice.Main.CarrierId2);
                     InvH.Npoban = (Invoice.Main.NPOBAN == null ? "" : Invoice.Main.NPOBAN);
-                    InvH.PrintMark = ((Invoice.Main.NPOBAN == null ? "N" : Invoice.Main.NPOBAN) == "Y" ? true : false);
+                    InvH.PrintMark = ((Invoice.Main.PrintMark == null ? "N" : Invoice.Main.PrintMark) == "Y" ? true : false);
                     InvH.RandomNumber = num.ToString();
                     //InvH.Cancel_Date
                     InvH.CancelFlag = false;
@@ -280,6 +353,7 @@ namespace MQEC_Api.Services
                     InvH.Currency = (Invoice.Amount.Currency == null ? "" : Invoice.Amount.Currency);
                     InvH.CreateDate = date;
                     InvH.CreareUser = Invoice.CreateUser;
+                    InvH.AvaAmount = (Invoice.Amount.TotalAmount == null ? 0 : Invoice.Amount.TotalAmount);
                     //InvH.UpdateDate = ;
                     InvH.UpdateUser = "";
                     _context.Invoice.Add(InvH);
@@ -357,12 +431,28 @@ namespace MQEC_Api.Services
                 }
                 else
                 {
-                    InvoiceInfo.CancelUser = Invoice.CancelUser;
-                    InvoiceInfo.CancelFlag = true;
-                    InvoiceInfo.CancelReason = Invoice.CancelReason;
-                    InvoiceInfo.CancelDate = date;
-                    Result.ResultCode = "0000";
-                    Result.ResultMessage = "Success";
+                    //預設取消區間為當期
+                    DateTime ChkDateFrom = DateTime.Parse((date.Month % 2 == 1 ? date.ToString("yyyy/MM/") : date.AddMonths(-1).ToString("yyyy/MM/")) + "01");
+                    DateTime ChkDateTo = DateTime.Parse((date.Month % 2 == 1 ? date.AddMonths(1).ToString("yyyy/MM/") : date.ToString("yyyy/MM/")) + "01").AddMonths(1).AddDays(-1);
+                    if (date.Month % 2 == 1 && date.Day >= 15) //單月15號前可取消上期
+                    {
+                        ChkDateFrom = DateTime.Parse(date.AddMonths(-2).ToString("yyyy/MM/") + "01");
+                    }
+
+                    if (InvoiceInfo.InvoiceDate.Value.Date >= ChkDateFrom && InvoiceInfo.InvoiceDate.Value.Date <= ChkDateTo)
+                    {
+                        InvoiceInfo.CancelUser = Invoice.CancelUser;
+                        InvoiceInfo.CancelFlag = true;
+                        InvoiceInfo.CancelReason = Invoice.CancelReason;
+                        InvoiceInfo.CancelDate = date;
+                        Result.ResultCode = "0000";
+                        Result.ResultMessage = "Success";
+                    }
+                    else
+                    {
+                        Result.ResultCode = "9999";
+                        Result.ResultMessage = "發票日期已超過取消期限";
+                    }
                 }
             }
             _context.SaveChanges();

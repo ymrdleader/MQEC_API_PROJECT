@@ -198,5 +198,9 @@ namespace MQEC_Api.Models
         [Column("Update_User")]
         [StringLength(50)]
         public string UpdateUser { get; set; }
+        [Column(TypeName = "decimal(12, 2)")]
+        public decimal ComAmount { get; set; }
+        [Column(TypeName = "decimal(12, 2)")]
+        public decimal AvaAmount { get; set; }
     }
 }
