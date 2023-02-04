@@ -17,6 +17,9 @@ namespace MQEC_Api.Models
         {
         }
 
+        public virtual DbSet<Allowance> Allowance { get; set; }
+        public virtual DbSet<AllowanceDetails> AllowanceDetails { get; set; }
+        public virtual DbSet<AllowanceFormNo> AllowanceFormNo { get; set; }
         public virtual DbSet<ComCurrency> ComCurrency { get; set; }
         public virtual DbSet<ComDepartment> ComDepartment { get; set; }
         public virtual DbSet<ComFormType> ComFormType { get; set; }
@@ -27,7 +30,6 @@ namespace MQEC_Api.Models
         public virtual DbSet<ComVatType> ComVatType { get; set; }
         public virtual DbSet<CompanyInfo> CompanyInfo { get; set; }
         public virtual DbSet<CompanyInfoReceipt> CompanyInfoReceipt { get; set; }
-        public virtual DbSet<DiscountsUploadStatus> DiscountsUploadStatus { get; set; }
         public virtual DbSet<Fm> Fm { get; set; }
         public virtual DbSet<Invoice> Invoice { get; set; }
         public virtual DbSet<InvoiceDetails> InvoiceDetails { get; set; }
@@ -39,6 +41,113 @@ namespace MQEC_Api.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Allowance>(entity =>
+            {
+                entity.HasKey(e => new { e.CompanyNo, e.AllowanceNo });
+
+                entity.Property(e => e.AllowanceNo).IsUnicode(false);
+
+                entity.Property(e => e.AllowanceType).IsUnicode(false);
+
+                entity.Property(e => e.BuyerCustomerNumber).IsUnicode(false);
+
+                entity.Property(e => e.BuyerEmailAddress).IsUnicode(false);
+
+                entity.Property(e => e.BuyerFacsimileNumber).IsUnicode(false);
+
+                entity.Property(e => e.BuyerId).IsUnicode(false);
+
+                entity.Property(e => e.BuyerRoleRemark).IsUnicode(false);
+
+                entity.Property(e => e.BuyerTelephoneNumber).IsUnicode(false);
+
+                entity.Property(e => e.Co1H1).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1H10).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1H2).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1H3).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1H4).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1H5).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1H6).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1H7).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1H8).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1H9).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.CurrencyId).IsUnicode(false);
+
+                entity.Property(e => e.InvoiceCategory).IsUnicode(false);
+
+                entity.Property(e => e.OriAllowanceNo).IsUnicode(false);
+
+                entity.Property(e => e.SellerCustomerNumber).IsUnicode(false);
+
+                entity.Property(e => e.SellerEmailAddress).IsUnicode(false);
+
+                entity.Property(e => e.SellerFacsimileNumber).IsUnicode(false);
+
+                entity.Property(e => e.SellerId).IsUnicode(false);
+
+                entity.Property(e => e.SellerRoleRemark).IsUnicode(false);
+
+                entity.Property(e => e.SellerTelephoneNumber).IsUnicode(false);
+            });
+
+            modelBuilder.Entity<AllowanceDetails>(entity =>
+            {
+                entity.HasKey(e => new { e.CompanyNo, e.AllowanceNo, e.Serno });
+
+                entity.Property(e => e.AllowanceNo).IsUnicode(false);
+
+                entity.Property(e => e.Co1D1).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1D10).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1D2).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1D3).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1D4).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1D5).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1D6).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1D7).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1D8).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Co1D9).HasDefaultValueSql("('')");
+
+                entity.Property(e => e.CurrencyId).IsUnicode(false);
+
+                entity.Property(e => e.InvoiceDate).IsUnicode(false);
+
+                entity.Property(e => e.InvoiceNumber).IsUnicode(false);
+
+                entity.Property(e => e.Prodid).IsUnicode(false);
+
+                entity.Property(e => e.TaxTypeNo).IsUnicode(false);
+
+                entity.Property(e => e.Unit).IsUnicode(false);
+            });
+
+            modelBuilder.Entity<AllowanceFormNo>(entity =>
+            {
+                entity.HasKey(e => new { e.CompanyNo, e.FormNo });
+
+                entity.Property(e => e.CompanyNo).IsUnicode(false);
+
+                entity.Property(e => e.FormNo).IsUnicode(false);
+            });
+
             modelBuilder.Entity<ComCurrency>(entity =>
             {
                 entity.Property(e => e.CurrencyId).IsUnicode(false);
@@ -147,21 +256,6 @@ namespace MQEC_Api.Models
                 entity.Property(e => e.Memo).HasDefaultValueSql("(space((0)))");
 
                 entity.Property(e => e.ReceiptAddress).HasDefaultValueSql("(space((0)))");
-            });
-
-            modelBuilder.Entity<DiscountsUploadStatus>(entity =>
-            {
-                entity.HasKey(e => new { e.CompanyNo, e.TaxId, e.InvoiceCategory, e.InvoiceKind, e.DisNo });
-
-                entity.Property(e => e.CompanyNo).IsUnicode(false);
-
-                entity.Property(e => e.TaxId).IsUnicode(false);
-
-                entity.Property(e => e.InvoiceCategory).IsUnicode(false);
-
-                entity.Property(e => e.InvoiceKind).IsUnicode(false);
-
-                entity.Property(e => e.DisNo).IsUnicode(false);
             });
 
             modelBuilder.Entity<Fm>(entity =>

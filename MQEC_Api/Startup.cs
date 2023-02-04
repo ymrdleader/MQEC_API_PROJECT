@@ -50,6 +50,7 @@ namespace MQEC_Api
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IBasicService, BasicService>();
             services.AddScoped<IInvoiceService, InvoiceService>();
+            services.AddScoped<IAllowanceService, AllowanceService>();
             services.AddSingleton<JwtHelpers>();
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

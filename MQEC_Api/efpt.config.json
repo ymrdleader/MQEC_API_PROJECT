@@ -15,6 +15,18 @@
    "SelectedToBeGenerated": 0,
    "Tables": [
       {
+         "Name": "[dbo].[Allowance]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AllowanceDetails]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AllowanceFormNo]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[comCurrency]",
          "ObjectType": 0
       },
@@ -52,10 +64,6 @@
       },
       {
          "Name": "[dbo].[comVatType]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[DiscountsUploadStatus]",
          "ObjectType": 0
       },
       {
